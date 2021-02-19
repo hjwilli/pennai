@@ -64,6 +64,7 @@ jobs:
           docker run -v $(pwd):/appsrc -v /appsrc/lab/webapp/node_modules -w /appsrc/lab/webapp/ pennai_unit_tester npm run test
           docker run -v $(pwd):/appsrc -w /appsrc pennai_unit_tester \
               coverage run -m nose -s -v \
+              --with-xunit --xunit-file="/appsrc/target/test-reports/nose_xunit.xml" \
               machine/test/learn_tests.py \
               lab/pyutils/tests/*.py \
               ai/tests/test_a*.py \
@@ -71,16 +72,16 @@ jobs:
               ai/tests/test_re*.py \
               ai/tests/test_k*utils.py
           coverage combine
-      - name: Coveralls
-        uses: AndreMiras/coveralls-python-action@develop
-        with:
-          parallel: true
-          flag-name: Unit Test for webapp
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: always()
         with:
           files: target/test-reports/**/*.xml
+      - name: Coveralls
+        uses: AndreMiras/coveralls-python-action@develop
+        with:
+          parallel: true
+          flag-name: Unit Test for webapp
 
   build_pypkg:
     name: Unit Tests for scikit-learn API
@@ -102,20 +103,24 @@ jobs:
         run: |
           git lfs fetch --all
           git lfs pull
-          docker run -v $(pwd):/appsrc -w /appsrc pennai_unit_tester coverage run -m nose -s -v ai/tests/test_sklearn_api.py
-          coverage combine
-      - name: Coveralls
-        uses: AndreMiras/coveralls-python-action@develop
-        with:
-          parallel: true
-          flag-name: Unit Test for scikit-learn api
+          docker run -v $(pwd):/appsrc -w /appsrc pennai_unit_tester \
+            coverage run -m nose -s -v \
+            --with-xunit --xunit-file="/appsrc/target/test-reports/nose_xunit.xml" \
+            ai/tests/test_sklearn_api.py
+          coverage combine    
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: always()
         with:
           files: target/test-reports/**/*.xml
+      - name: Coveralls
+        uses: AndreMiras/coveralls-python-action@develop
+        with:
+          parallel: true
+          flag-name: Unit Test for scikit-learn api
 
   coveralls_finish:
+    if: 1 == 2
     name: Coveralls Done
     needs: [webapp_unit_tests, build_pypkg]
     runs-on: ubuntu-latest
@@ -126,6 +131,7 @@ jobs:
         parallel-finished: true
 
   deploy_pypkg:
+    if: 1 == 2
     name: Deploy python package
     needs: build_pypkg
     # The type of runner that the job will run on
@@ -152,11 +158,12 @@ jobs:
           twine upload dist/*
 
   build_docs:
+    if: 1 == 2
+    #if: github.ref == 'refs/heads/master' 
     name: Doc Builder
     needs: [int_tests, webapp_unit_tests, build_pypkg]
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
