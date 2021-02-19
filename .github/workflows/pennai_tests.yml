@@ -105,7 +105,7 @@ jobs:
           git lfs pull
           docker run -v $(pwd):/appsrc -w /appsrc pennai_unit_tester \
             coverage run -m nose -s -v \
-            --with-xunit --xunit-file="/appsrc/target/test-reports/nose_xunit.xml" \
+            --with-xunit --xunit-file="/appsrc/target/test-reports/pypkg_nose_xunit.xml" \
             ai/tests/test_sklearn_api.py
           coverage combine    
       - name: Publish Test Results
