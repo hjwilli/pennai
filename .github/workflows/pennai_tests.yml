@@ -30,6 +30,12 @@ jobs:
         run: |
           docker-compose  -f ./docker-compose-int-test.yml run tester bash -c "sh /root/wait_pennai.sh && npm test"
           docker-compose -f ./docker-compose-int-test.yml down
+          
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: target/test-reports/**/*.xml
 
   webapp_unit_tests:
     name: Unit Tests for Webapp
@@ -70,6 +76,11 @@ jobs:
         with:
           parallel: true
           flag-name: Unit Test for webapp
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: target/test-reports/**/*.xml
 
   build_pypkg:
     name: Unit Tests for scikit-learn API
@@ -98,6 +109,11 @@ jobs:
         with:
           parallel: true
           flag-name: Unit Test for scikit-learn api
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: target/test-reports/**/*.xml
 
   coveralls_finish:
     name: Coveralls Done
